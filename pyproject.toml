@@ -1,6 +1,6 @@
 [project]
 name = "packedpipes"
-description = "Custom nodes that organize ComfyUI workflow connections by combining multiple links into single pipeline links. (Description by CC)"
+description = "This curom node help organize connections in the ComfyUI workflow by combining multiple links into a single pipeline link."
 version = "1.0.0"
 license = {file = "LICENSE"} 
 # classifiers = [
@@ -24,13 +24,12 @@ license = {file = "LICENSE"}
 [project.urls]
 Repository = "https://github.com/id7238/ComfyUI-PackedPipes"
 #  Used by Comfy Registry https://registry.comfy.org
-Documentation = "https://github.com/id7238/ComfyUI-PackedPipes/wiki"
 "Bug Tracker" = "https://github.com/id7238/ComfyUI-PackedPipes/issues"
 
 [tool.comfy]
-PublisherId = ""
+PublisherId = "id7238"
 DisplayName = "ComfyUI-PackedPipes"
-Icon = ""
+Icon = "https://raw.githubusercontent.com/id7238/ComfyUI-PackedPipes/docs/assets/images/icon.jpg"
+Banner ="https://raw.githubusercontent.com/id7238/ComfyUI-PackedPipes/docs/assets/images/banner.jpg"
 includes = [] 
-# "requires-comfyui" = ">=1.0.0"  # ComfyUI version compatibility
-
+requires-comfyui = "<2.0.0"  # ComfyUI version compatibility
