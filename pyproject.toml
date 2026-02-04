@@ -1,7 +1,7 @@
 [project]
 name = "packedpipes"
 description = "This curom node help organize connections in the ComfyUI workflow by combining multiple links into a single pipeline link."
-version = "1.0.1"
+version = "1.0.2"
 license = {file = "LICENSE"}
 # classifiers = [
 #     # For OS-independent nodes (works on all operating systems)
