@@ -3,6 +3,7 @@ import { app } from "../../scripts/app.js";
 const PACKER_NODE_TYPE = 'PipePacker';
 const PACKER_NODE_INPUTS_LIMIT = 16;
 const PACKER_SYNC_BUTTON_CAPTION = "Sync Unpackers";
+const PACKER_NAMING_OPTION_CAPTION = "Keep input names";
 const UNPACKER_NODE_TYPE = 'PipeUnpacker';
 const PACKED_PIPE_TYPE = 'PACKED_PIPE';
 const PACKED_PIPE_TYPE_COLOR = '#8b008b';
@@ -120,9 +121,12 @@ class PackerNode extends PackedPipesNode {
     updateInput(slot) {
         const originNode = PackedPipesNode.getInputNode(this.node, slot);
         if (originNode?.node) {
+            const preserveLableNames = this.node?.widgets[1]?.value;
             const originOutput = originNode.node.outputs[originNode.slot];
             this.node.inputs[slot].type = originOutput.type;
-            this.node.inputs[slot].label = originOutput.label || originOutput.name || originOutput.type;
+            if (!preserveLableNames || this.node.inputs[slot].label === ' ') {
+                this.node.inputs[slot].label = originOutput.label || originOutput.name || originOutput.type;
+            }
             this.node.inputs[slot].removable = true;
             originNode.path.forEach(pathElement => pathElement.link.type = pathElement.slot.type = originOutput.type);
         }
@@ -279,6 +283,8 @@ app.registerExtension({
                 }, {serialize: false});
                 node.widgets[0].hidden = true;
                 this.size[0] = NODE_DEFAULT_WIDTH;
+                node.addWidget("toggle", PACKER_NAMING_OPTION_CAPTION, true);
+                //this.widgets[1].tooltip = "Prevents automatic renaming of input slots when connecting";
                 if (!app.configuringGraph) {
                     packerNode.refresh();
                 }
