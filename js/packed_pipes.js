@@ -170,24 +170,44 @@ class UnpackerNode extends PackedPipesNode {
             });
             return;
         }
+
+        const prevUnpackerOutputsPackerLinks = this.node.outputs.map(output => output._packerLink);
+
+        for (let index = 0; index <= packerNode.inputs.length - 2; index++) {
+            const packerInput = packerNode.inputs[index];
+            if (!this.node.outputs[index]) {
+                this.node.addOutput(`output_${index}`, packerInput.type, {label: packerInput.label || packerInput.name});
+            } else {
+                let prevOutputIndex = packerInput.link ? prevUnpackerOutputsPackerLinks.indexOf(packerInput.link) : -1;
+                if (prevOutputIndex >= 0) {
+                    while (prevOutputIndex > index) {
+                        this.node.removeOutput(index);
+                        prevUnpackerOutputsPackerLinks.splice(index, 1);
+                        prevOutputIndex--;
+                    }
+                } else if (this.node.outputs[index].type != packerInput.type || !packerInput.link) {
+                    this.node.disconnectOutput(index);
+                }
+                this.node.outputs[index].type = packerInput.type;
+                this.node.outputs[index].label = packerInput.label;
+            }
+            this.node.outputs[index]._packerLink = packerInput.link;
+        }
+
         while (this.node.outputs.length > packerNode.inputs.length - 1) {
             this.node.removeOutput(this.node.outputs.length - 1);
         }
-        for (let index = 0; index <= packerNode.inputs.length - 2; index++) {
-            const packerInput = packerNode.inputs[index];
-            const unpackerOutput = this.node.outputs[index];
-            if (!unpackerOutput) {
-                this.node.addOutput(`output_${index}`, packerInput.type, {label: packerInput.label || packerInput.name});
-            } else {
-                if (packerInput.type !== unpackerOutput.type) {
-                    this.node.disconnectOutput(index);
-                    unpackerOutput.type = packerInput.type;
-                }
-                unpackerOutput.label = packerInput.label;
+
+        this.node.size[1] = this.node.computeSize()[1];
+    }
+
+    setupOutputsPackerLink() {
+        if (this.node.outputs.length > 0 && this.node.outputs[0]._packerLink === undefined) {
+            const packerNode = this.getPacker();
+            if (packerNode) {
+                this.node.outputs.map((output, index) => output._packerLink = packerNode.inputs[index]?.link);
             }
         }
-        this.node.inputs[0].label = packerNode.outputs[0].label||packerNode.outputs[0].type;
-        this.node.size[1] = this.node.computeSize()[1];
     }
 
     getPacker() {
@@ -238,6 +258,9 @@ app.registerExtension({
         if (node.type === PACKER_NODE_TYPE) {
             const packerNode = new PackerNode(node);
             packerNode.refresh();
+        } else if (node.type === UNPACKER_NODE_TYPE) {
+            const unpackerNode = new UnpackerNode(node);
+            unpackerNode.setupOutputsPackerLink();
         }
     },
 
