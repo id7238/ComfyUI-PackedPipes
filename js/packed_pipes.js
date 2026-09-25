@@ -354,7 +354,7 @@ app.registerExtension({
             const onConnectionsChange = node.onConnectionsChange;
             node.onConnectionsChange = function(side, slot, connect, link) {
                 onConnectionsChange?.apply(this, arguments);
-                if (!app.configuringGraph && side === LiteGraph.INPUT && connect) {
+                if (!app.configuringGraph && side === LiteGraph.INPUT) {
                     unpackerNode.updateOutputs();
                 }
             }
