@@ -2,17 +2,17 @@
 
 ![ComfyUI-PackedPipes](https://raw.githubusercontent.com/id7238/ComfyUI-PackedPipes/docs/assets/images/logo.png)
 
-I decided to share my custom nodes that help organize connections in the ComfyUI workflow by combining multiple links into a single pipeline link. This extension adds two nodes, `Pipe Packer` and `Pipe Unpacker`, to the `utils` category.
+A set of custom nodes that keeps ComfyUI workflows tidy by combining multiple links into a single pipeline link. This extension adds two nodes, `Pipe Packer` and `Pipe Unpacker`, to the `utils` category.
 
 * `Pipe Packer` accepts up to 16 connections of any type.
-* The `Pipe Unpacker` unpacks all input ports of its `Pipe Packer` into its output ports in the same order.
+* `Pipe Unpacker` restores the inputs of its connected `Pipe Packer` as outputs, in the same order.
 * Supports rerouters and subgraphs.
-* Supports custom output port labels for connected nodes.
-* The `Pipe Packer` node supports nested connections from other packers.
+* `Pipe Packer` supports custom input port labels ("Keep input names" option).
+* Supports nesting: a packed pipe can be connected to another `Pipe Packer`.
 * When an input port is connected, the `Pipe Unpacker` node automatically synchronizes with its `Pipe Packer` node.
 
-> [!WARNING]
-> Does not support Nodes 2.0 theme.
+> [!NOTE]
+> Renaming and removing `Pipe Packer` input ports is not available in Nodes 2.0 — ComfyUI does not expose these options in the new UI. To rename or remove a port, temporarily disable Nodes 2.0.
 
 ## Installation
 
@@ -33,7 +33,7 @@ git clone https://github.com/id7238/ComfyUI-PackedPipes.git
 
 ### 3. A complex example
 
-This is an example from a modified Wan 2.2 14B I2V workflow template, modified to sequence scenes to create a video longer than 5 seconds. The last frame is passed to the next scene as the first image. The subgraph of the second scene in the workflow can be duplicated as a subsequent scene. Unused scenes other than the first can be bypassed.
+An example based on the Wan 2.2 14B I2V template, adapted to sequence multiple scenes into a video longer than 5 seconds. The last frame of each scene is passed to the next scene as the first image. Duplicate the second scene's subgraph to add more scenes; any unused scene can be bypassed.
 
 [Download the workflow](https://raw.githubusercontent.com/id7238/ComfyUI-PackedPipes/docs/assets/workflows/video_wan2_2_14B_i2v_sequence.json)
 
