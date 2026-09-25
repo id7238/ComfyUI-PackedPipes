@@ -219,7 +219,12 @@ class UnpackerNode extends PackedPipesNode {
 
         const prevUnpackerOutputsPackerLinks = this.node.outputs.map(output => output._packerLink);
 
-        for (let index = 0; index <= packerNode.inputs.length - 2; index++) {
+        let packerNodeInputsCount = packerNode.inputs.length;
+        if (packerNodeInputsCount < PACKER_NODE_INPUTS_LIMIT) {
+            packerNodeInputsCount--;
+        }
+
+        for (let index = 0; index < packerNodeInputsCount; index++) {
             const packerInput = packerNode.inputs[index];
             if (!this.node.outputs[index]) {
                 this.node.addOutput(`output_${index}`, packerInput.type, {label: packerInput.label || packerInput.name});
@@ -240,7 +245,7 @@ class UnpackerNode extends PackedPipesNode {
             this.node.outputs[index]._packerLink = packerInput.link;
         }
 
-        while (this.node.outputs.length > packerNode.inputs.length - 1) {
+        while (this.node.outputs.length > packerNodeInputsCount) {
             this.node.removeOutput(this.node.outputs.length - 1);
         }
 
