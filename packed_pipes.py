@@ -1,3 +1,5 @@
+PACKED_PIPES_LIMIT = 16
+
 class PackedPipes_AnyType(str):
     def __ne__(self, __value: object) -> bool:
         return False
@@ -31,9 +33,14 @@ class PackedPipes_UnpackerNode:
             }
         }
 
-    RETURN_TYPES = (anytype, anytype, anytype, anytype, anytype, anytype, anytype, anytype, anytype, anytype, anytype, anytype, anytype, anytype, anytype, anytype)
-    RETURN_NAMES = ("output_0", "output_1", "output_2", "output_3", "output_4", "output_5", "output_6", "output_7", "output_8", "output_9", "output_10", "output_11", "output_12", "output_13", "output_14", "output_15")
+    RETURN_TYPES = (anytype,) * PACKED_PIPES_LIMIT
+    RETURN_NAMES = tuple(
+        f"output_{i}" for i in range(PACKED_PIPES_LIMIT)
+    )
     FUNCTION = "unpack"
 
     def unpack(self, packed_pipe):
-        return tuple(packed_pipe.values())
+        return tuple(
+            packed_pipe.get(f"input_{i}")
+            for i in range(PACKED_PIPES_LIMIT)
+        )
