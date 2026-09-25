@@ -8,7 +8,7 @@ const UNPACKER_NODE_TYPE = 'PipeUnpacker';
 const PACKED_PIPE_TYPE = 'PACKED_PIPE';
 const PACKED_PIPE_TYPE_COLOR = '#8b008b';
 const REROUTE_NODE_TYPE = 'Reroute';
-const NODE_DEFAULT_WIDTH = 180;
+const NODE_DEFAULT_WIDTH = 260;
 
 class PackedPipesNode {
 
@@ -99,6 +99,48 @@ class PackedPipesNode {
 
 class PackerNode extends PackedPipesNode {
 
+    widgets = {
+        syncBtn: null,
+        namingCbx: null
+    };
+
+    constructor(node) {
+        super(node);
+
+        if (node.widgets) {
+            this.widgets.namingCbx = node.widgets[0];
+            this.widgets.syncBtn = node.widgets[1];
+        }
+    }
+    updateSyncWidgetCaption(unpackersCount = 0) {
+        if (this.widgets.syncBtn) {
+            this.widgets.syncBtn.name = PACKER_SYNC_BUTTON_CAPTION;
+            if (unpackersCount > 0) {
+                this.widgets.syncBtn.name += ` (${unpackersCount})`;
+            }
+        }
+    }
+
+    addWidgets() {
+        if (!this.node.widgets || this.node.widgets.length === 0) {
+            this.widgets.namingCbx = this.node.addWidget("toggle", PACKER_NAMING_OPTION_CAPTION, true);
+            //packerNode.widgets.namingCbx.tooltip = "Prevents automatic renaming of input slots when connecting";
+
+            this.widgets.syncBtn = this.node.addWidget(
+                "button",
+                PACKER_SYNC_BUTTON_CAPTION,
+                null,
+                () => {
+                    const unpackers = this.getUnpackers();
+                    unpackers.forEach(unpackerNode => unpackerNode.updateOutputs(this.node));
+                    this.updateSyncWidgetCaption(unpackers.length);
+                },
+                {serialize: false}
+            );
+            this.widgets.syncBtn.hidden = true;
+        }
+    }
+
     refresh() {
         if (this.node.inputs.length < PACKER_NODE_INPUTS_LIMIT
             && (this.node.inputs.length === 0
@@ -109,10 +151,10 @@ class PackerNode extends PackedPipesNode {
             this.node.addInput(`input`, "*", {label: " "});
             this.node.inputs.forEach((input, inputIndex) => input.name = `input_${inputIndex}`);
         }
-        if (this.node.widgets) {
-            this.node.widgets[0].hidden = this.node.inputs.length <= 1 || this.node.findOutputSlotFree(0) === 0;
-            if (this.node.widgets[0].hidden) {
-                this.node.widgets[0].name = PACKER_SYNC_BUTTON_CAPTION;
+        if (this.widgets.syncBtn) {
+            this.widgets.syncBtn.hidden = this.node.inputs.length <= 1 || this.node.findOutputSlotFree(0) === 0;
+            if (this.widgets.syncBtn.hidden) {
+                this.updateSyncWidgetCaption();
             }
         }
         this.node.size[1] = this.node.computeSize()[1];
@@ -121,10 +163,10 @@ class PackerNode extends PackedPipesNode {
     updateInput(slot) {
         const originNode = PackedPipesNode.getInputNode(this.node, slot);
         if (originNode?.node) {
-            const preserveLableNames = this.node?.widgets[1]?.value;
+            const preserveLabelNames = this.widgets.namingCbx?.value;
             const originOutput = originNode.node.outputs[originNode.slot];
             this.node.inputs[slot].type = originOutput.type;
-            if (!preserveLableNames || this.node.inputs[slot].label === ' ') {
+            if (!preserveLabelNames || this.node.inputs[slot].label === ' ') {
                 this.node.inputs[slot].label = originOutput.label || originOutput.name || originOutput.type;
             }
             this.node.inputs[slot].removable = true;
@@ -276,15 +318,8 @@ app.registerExtension({
             const onAdded = node.onAdded;
             node.onAdded = function() {
                 onAdded?.apply(this, arguments);
-                node.addWidget("button", PACKER_SYNC_BUTTON_CAPTION, null, function () {
-                    const unpackers = packerNode.getUnpackers();
-                    unpackers.forEach(unpackerNode => unpackerNode.updateOutputs(this.node));
-                    this.name = `${PACKER_SYNC_BUTTON_CAPTION} (${unpackers.length})`;
-                }, {serialize: false});
-                node.widgets[0].hidden = true;
+                packerNode.addWidgets();
                 this.size[0] = NODE_DEFAULT_WIDTH;
-                node.addWidget("toggle", PACKER_NAMING_OPTION_CAPTION, true);
-                //this.widgets[1].tooltip = "Prevents automatic renaming of input slots when connecting";
                 if (!app.configuringGraph) {
                     packerNode.refresh();
                 }
@@ -296,12 +331,14 @@ app.registerExtension({
                     if (side === LiteGraph.INPUT && connect && link) {
                         packerNode.updateInput(slot);
                     }
+                    packerNode.updateSyncWidgetCaption();
                     packerNode.refresh();
                 }
             }
             const removeInput = node.removeInput;
             node.removeInput = function(slot) {
                 const result = removeInput?.apply(this, arguments);
+                packerNode.updateSyncWidgetCaption();
                 packerNode.refresh(this);
                 return result;
             }
